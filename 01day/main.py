@@ -15,7 +15,7 @@ def read_input(file_name) -> None:
     Function loads the numbers into two arrays (left and right)
     """
     file = os.path.join(os.path.dirname(__file__), file_name)
-    with open(file) as input_data:
+    with open(file, encoding="utf-8") as input_data:
         for line in input_data:
             pair = line.split("   ")
             left.append(int(pair[0]))
