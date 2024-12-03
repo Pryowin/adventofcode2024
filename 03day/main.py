@@ -66,26 +66,23 @@ def find_valid_instructions(memory: str) -> list:
         memory (str): The string representing the memory to search within.
 
     Returns:
-        list: A list of strings, each representing a valid 'mul' instruction.
+        list: A list of tuples, each containing a pair of numbers. 
     """
-    return re.findall(r"mul\(\d{1,3},\d{1,3}\)",memory)
+    matches = re.findall(r"mul\((\d{1,3}),(\d{1,3})\)",memory)
+    return  [(int(x), int(y)) for x, y in matches]
 
-def process_instructions(instructions: list) -> int:
+def process_instructions(pairs: list) -> int:
     """
-    Processes a list of instruction strings, extracting numbers from each
-    instruction, multiplying them, and summing the results.
+    Processes a list of number pairs by multiplying each pair and summing the results.
 
     Args:
-        instructions (list): A list of strings, each containing a multiplication
-        instruction in the format 'mul(x,y)'.
+        pairs (list): A list of tuples, where each contains two numeric strings.
 
     Returns:
-        int: The sum of the products of the numbers extracted from each instruction.
+        int: The sum of the products of each pair of numbers.
     """
     count = 0
-    for instruction in instructions:
-        edited_instruction = re.sub(r"mul\(|\)","",instruction)
-        numbers = edited_instruction.split(",")
+    for numbers in pairs:
         count += int(numbers[0]) * int(numbers[1])
     return count
 
