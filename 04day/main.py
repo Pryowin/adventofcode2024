@@ -4,10 +4,15 @@ https://adventofcode.com/2024/day/4
 """
 import os
 import sys
+from itertools import product
 
 DEFAULT_FILE_NAME = "input.txt"
 WORD = 'XMAS'
 WORD_LEN = len(WORD)
+FIRST_LETTER = "X"
+FIRST_CROSS = "M"
+LAST_CROSS = "S"
+CENTER_CROSS = "A"
 
 def read_input(file_name:str) -> list:
     """Read input file
@@ -74,7 +79,7 @@ def process_puzzle(puzzle:list ,row_count:int ,column_count:int ) -> int:
     count = 0
     for y in range(0,row_count):
         for x in range(0,column_count):
-            if puzzle[y][x] == 'X':
+            if puzzle[y][x] == FIRST_LETTER:
                 count += words_found(puzzle, y,x, row_count, column_count)
     return count
 
@@ -94,7 +99,8 @@ def words_found(puzzle:list , y:int,x:int, row_count:int ,column_count:int ) -> 
         int: The number of times the word is found starting from the given position.
     """
     count = 0
-    directions = [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
+    directions = list(product([-1,0,1],[-1,0,1] ))
+    directions.remove((0,0))
     for vertical_direction, horizontal_direction in directions:
         if 0 <= y + vertical_direction * (WORD_LEN-1) < row_count:
             if 0 <= x + horizontal_direction * (WORD_LEN-1) < column_count:
@@ -147,7 +153,7 @@ def process_puzzle_part_2(puzzle:list , row_count:int, column_count:int) -> int:
     count = 0
     for y in range(1,row_count-1):
         for x in range(1,column_count-1):
-            if puzzle[y][x] == 'A':
+            if puzzle[y][x] == CENTER_CROSS:
                 if cross_found(puzzle,y,x):                
                     count += 1
     return count
@@ -170,13 +176,13 @@ def cross_found(puzzle,y,x) -> bool:
         bool: True if the cross pattern is found, False otherwise.
     """
     count = 0
-    if puzzle[y-1][x-1] == "M" and puzzle[y+1][x+1] == "S":
+    if puzzle[y-1][x-1] == FIRST_CROSS and puzzle[y+1][x+1] == LAST_CROSS:
         count += 1
-    if puzzle[y-1][x-1] == "S" and puzzle[y+1][x+1] == "M":
+    if puzzle[y-1][x-1] == LAST_CROSS and puzzle[y+1][x+1] == FIRST_CROSS:
         count += 1
-    if puzzle[y-1][x+1] == "M" and puzzle[y+1][x-1] == "S":
+    if puzzle[y-1][x+1] == FIRST_CROSS and puzzle[y+1][x-1] == LAST_CROSS:
         count += 1
-    if puzzle[y-1][x+1] == "S" and puzzle[y+1][x-1] == "M":
+    if puzzle[y-1][x+1] == LAST_CROSS and puzzle[y+1][x-1] == FIRST_CROSS:
         count += 1
     return count == 2
     
