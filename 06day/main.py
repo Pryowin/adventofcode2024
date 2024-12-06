@@ -8,14 +8,50 @@ import sys
 DEFAULT_FILE_NAME = "input.txt"
 GUARD_DIRECTION = {"v": (1,0), "^": (-1,0), ">" : (0,1), "<": (0,-1)}
 GUARD_TURN = {"v": "<", "<": "^", "^": ">", ">":"v" }
-Y_IDX = 0
-X_IDX = 1
-POS_IDX = 0
-DIR_IDX = 1
-ICON_IDX = 2
+OBSTACLE = "#"
 
 rows=0 
 cols=0
+
+X_IDX = 1
+Y_IDX = 0
+
+class Guard():
+    def __init__(self, y,x, icon) -> None:
+        self._y = y
+        self._x = x
+        self._icon = icon
+        self._direction = GUARD_DIRECTION[icon]
+        
+    def x(self):
+        return self._x
+    def y(self):
+        return self._y
+        
+    def check_move(self) ->bool:
+        new_x = self._x + self._direction[X_IDX]
+        new_y = self._y + self._direction[Y_IDX]
+        return self._is_in_bounds(new_y,new_x)
+    
+    def _is_in_bounds(self,y,x) -> bool:
+        return (0 <= y < rows)  and (0 <= x < cols)
+    
+    def is_in_bounds(self) -> bool:
+        return self._is_in_bounds(self._y,self._x)
+        
+    def move(self):
+        self._x = self._x + self._direction[X_IDX]
+        self._y = self._y + self._direction[Y_IDX]
+        
+    def rotate(self):
+        self._icon = GUARD_TURN[self._icon]
+        self._direction = GUARD_DIRECTION[self._icon]
+        print(self._direction)
+        
+    def obstacle(self,grid) -> bool:
+        new_x = self._x + self._direction[X_IDX]
+        new_y = self._y + self._direction[Y_IDX]
+        return grid[new_y][new_x] == OBSTACLE
 
 def read_input(file_name:str) -> list:
     """Read input file
@@ -43,7 +79,7 @@ def get_file_name() -> str:
         return DEFAULT_FILE_NAME
     return sys.argv[1]
 
-def find_position_and_direction(grid) -> tuple:
+def find_position_and_direction(grid) -> Guard:
     icon = ''
     for y in range(rows):
         for x in range(cols):
@@ -51,38 +87,25 @@ def find_position_and_direction(grid) -> tuple:
             if contents not in (".","#"):   
                 pos_x = x
                 pos_y = y
-                direction = GUARD_DIRECTION[contents]
                 icon = contents
                 break
-    return ((pos_y,pos_x),direction,icon)
+    return Guard(pos_y,pos_x,icon)
 
 def move_and_count(grid: list) -> int:
     positions = set()
     guard = find_position_and_direction(grid)
-    while is_guard_in_bounds(guard):
-        positions.add(guard[POS_IDX])
-        guard = move_guard(grid, guard)
+    while guard.is_in_bounds():
+        has_updated = False
+        positions.add((guard.y(),guard.x()))
+        if guard.check_move():
+            if guard.obstacle(grid):
+                guard.rotate()
+                has_updated = True
+        if not has_updated:
+            guard.move()
+            
     return len(positions)
 
-def is_guard_in_bounds(guard):
-    y = guard[POS_IDX][Y_IDX]
-    x = guard[POS_IDX][X_IDX]
-    return (0 <= y < rows) and (0 <= x < cols)
-
-def move_guard(grid, guard) -> tuple:
-    y = guard[POS_IDX][Y_IDX]
-    x = guard[POS_IDX][X_IDX]
-    direction = guard[DIR_IDX]
-    icon = guard[ICON_IDX]
-    new_x = x + direction[X_IDX]
-    new_y =y + direction[Y_IDX]
-    new_guard = ((new_y,new_x),direction,icon)
-    if is_guard_in_bounds(new_guard):
-        if grid[new_y][new_x] == "#":
-            new_icon = GUARD_TURN[icon]
-            new_direction = GUARD_DIRECTION[new_icon]
-            return((y,x),new_direction,new_icon)
-    return ((new_y,new_x),direction,icon)
 
 def main():
     """ Main function
