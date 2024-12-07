@@ -68,7 +68,6 @@ def count_valid_equations(file_data, is_part_one = True) -> int:
             operator_combinations = list(product([ADD, MULTIPLY], repeat=num_operators))
         else:
             operator_combinations = list(product([ADD, MULTIPLY, CONCAT], repeat=num_operators))
-        not_yet_verified = True
         for operators in operator_combinations:
             result = numbers[0]
             for i, op in enumerate(operators):
@@ -83,9 +82,9 @@ def count_valid_equations(file_data, is_part_one = True) -> int:
                         raise ValueError("Invalid operator")
                 if result > answer:
                     break
-            if answer == result and not_yet_verified:
-                not_yet_verified = False
+            if answer == result:
                 sum_valid += result
+                break
     print (f"Time taken = {time()-start}")
     return sum_valid
 
