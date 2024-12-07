@@ -5,6 +5,8 @@ https://adventofcode.com/2024/day/6
 import os
 import sys
 
+from copy import deepcopy
+
 DEFAULT_FILE_NAME = "input.txt"
 GUARD_DIRECTION = {"v": (1,0), "^": (-1,0), ">" : (0,1), "<": (0,-1)}
 GUARD_TURN = {"v": "<", "<": "^", "^": ">", ">":"v" }
@@ -27,8 +29,14 @@ class Guard():
         return self._x
     def y(self):
         return self._y
+    def new_x(self):
+        return self._x + self._direction[X_IDX]
+    def new_y(self):
+        return self._y + self._direction[Y_IDX]
+    def icon(self):
+        return self._icon
         
-    def check_move(self) ->bool:
+    def is_move_in_bounds(self) ->bool:
         new_x = self._x + self._direction[X_IDX]
         new_y = self._y + self._direction[Y_IDX]
         return self._is_in_bounds(new_y,new_x)
@@ -46,12 +54,17 @@ class Guard():
     def rotate(self):
         self._icon = GUARD_TURN[self._icon]
         self._direction = GUARD_DIRECTION[self._icon]
-        print(self._direction)
         
     def obstacle(self,grid) -> bool:
         new_x = self._x + self._direction[X_IDX]
         new_y = self._y + self._direction[Y_IDX]
         return grid[new_y][new_x] == OBSTACLE
+    
+    def vector_pos(self) -> tuple:
+        return (self._y, self._x,self._icon)
+    
+    def pos(self) -> tuple:
+        return (self._y, self._x)
 
 def read_input(file_name:str) -> list:
     """Read input file
@@ -91,13 +104,13 @@ def find_position_and_direction(grid) -> Guard:
                 break
     return Guard(pos_y,pos_x,icon)
 
-def move_and_count(grid: list) -> int:
+def move_and_count(grid: list,guard: Guard) -> int:
     positions = set()
-    guard = find_position_and_direction(grid)
+
     while guard.is_in_bounds():
         has_updated = False
-        positions.add((guard.y(),guard.x()))
-        if guard.check_move():
+        positions.add(guard.pos())
+        if guard.is_move_in_bounds():
             if guard.obstacle(grid):
                 guard.rotate()
                 has_updated = True
@@ -106,7 +119,42 @@ def move_and_count(grid: list) -> int:
             
     return len(positions)
 
+def move_and_count_blocks(grid: list ,guard: Guard) ->int:
+    block_positions = set()
+    while guard.is_in_bounds():
+        if guard.is_move_in_bounds():
+            if not guard.obstacle(grid):
+                new_y = guard.new_y()
+                new_x = guard.new_x()
+                if not (guard.pos() in block_positions):
+                    grid[new_y][new_x] = OBSTACLE
+                    if is_loop(grid, deepcopy(guard)):
+                        block_positions.add(guard.pos())
+                    grid[new_y][new_x] = '.'
+                guard.move()
+            else:
+                guard.rotate()
+        else:
+            guard.move()
+    
+    return len(block_positions)
+            
 
+def is_loop(grid:list, guard:Guard) -> bool:
+    positions = set()
+    while guard.is_in_bounds():
+        positions.add(guard.vector_pos())
+        if guard.is_move_in_bounds():
+            if guard.obstacle(grid):
+                guard.rotate()
+            else:
+                guard.move()
+        else:
+            return False
+        if guard.vector_pos() in positions:
+            return True
+            
+    
 def main():
     """ Main function
         Reads the specified input file
@@ -121,8 +169,13 @@ def main():
     global cols
     rows = len(grid)
     cols = len(grid[0])
-    unique_locations = move_and_count(grid)
+    guard = find_position_and_direction(grid)
+    unique_locations = move_and_count(grid,guard)
     print(unique_locations)
+    
+    guard = find_position_and_direction(grid)
+    block_locations = move_and_count_blocks(grid,guard)
+    print(block_locations)
     
 
 if __name__ == "__main__":
