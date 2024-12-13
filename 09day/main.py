@@ -32,9 +32,9 @@ def get_file_name() -> str:
         return DEFAULT_FILE_NAME
     return sys.argv[1]
 
-def create_map(input_data: list) ->tuple[list,dict,dict,int]:
+def create_map(input_data: list) ->tuple[list,list,dict,int]:
     disk_map=[]
-    free_space_blocks = dict()
+    free_space_blocks = list()
     file_blocks = dict()
     for i,value in enumerate(input_data):
         if (i%2) == 0:
@@ -44,7 +44,7 @@ def create_map(input_data: list) ->tuple[list,dict,dict,int]:
         else:
             char = FREE_SPACE
             pos = '{0:07d}'.format(len(disk_map))
-            free_space_blocks[pos] = int(value)
+            free_space_blocks.append(pos,int(value))
         for _ in range(int(value)):
             disk_map.append(char)
     return disk_map,free_space_blocks,file_blocks,file_num
